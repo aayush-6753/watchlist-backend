@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { getAllGenres, getMoviesByGenre } = require('../services/genreService');
+const { getAllGenres, getMoviesByGenre } = require('../controllers/genreController');
 
 // GET /api/genres - Get list of all distinct saved genres
 router.get('/', getAllGenres);

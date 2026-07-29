@@ -1,26 +1,26 @@
-const Movie = require('../models/Movie');
+const Movie = require('../models/movieModel');
 
-// GET /api/genres - Get list of unique genres currently in your database
-exports.getAllGenres = async (req, res) => {
+// GET /api/genres - Get unique genres for current user
+exports.getAllGenres = async (req, res, next) => {
     try {
-        const genres = await Movie.distinct('genres');
+        const genres = await Movie.distinct('genres', { user: req.user.id });
         res.json({ count: genres.length, data: genres });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-// GET /api/genres/:genreName - Get saved movies matching a specific genre
-exports.getMoviesByGenre = async (req, res) => {
+// GET /api/genres/:genreName - Get user's movies by genre
+exports.getMoviesByGenre = async (req, res, next) => {
     try {
         const { genreName } = req.params;
-        // Case-insensitive regex match inside the genres array
         const movies = await Movie.find({
+            user: req.user.id,
             genres: { $regex: new RegExp(`^${genreName}$`, 'i') }
         });
 
         res.json({ count: movies.length, genre: genreName, data: movies });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };

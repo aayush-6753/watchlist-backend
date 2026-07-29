@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const movieSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     imdbId: { type: String, required: true },
     title: { type: String, required: true },
     posterUrl: { type: String },
