@@ -4,12 +4,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-const sendVerificationEmail = async (email, verifyToken, userId) => {
-    // 1. Create the transporter using Mailtrap SMTP
+const sendVerificationEmail = async (email, username, verifyToken, userId) => {
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 2525,
-        secure: false, // false for port 2525, 587, or 25
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: Number(process.env.SMTP_PORT) === 465,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
@@ -18,19 +17,43 @@ const sendVerificationEmail = async (email, verifyToken, userId) => {
 
     const verifyUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verifyToken}&id=${userId}`;
 
-    // 2. Send the email
     await transporter.sendMail({
-        from: `"Your App" <${process.env.SMTP_FROM}>`,
+        from: `"${process.env.APP_NAME || 'SeenIt'}" <${process.env.SMTP_FROM}>`,
         to: email,
-        subject: 'Verify your email address',
+        subject: `Verify your ${process.env.APP_NAME || 'SeenIt'} account`,
         html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>Welcome!</h2>
-                <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
-                <p><a href="${verifyUrl}" style="background: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Verify Email</a></p>
-                <p>Or copy and paste this link in your browser:</p>
-                <p><a href="${verifyUrl}">${verifyUrl}</a></p>
-                <p>This link will expire in 24 hours.</p>
+            <div style="background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px 20px; max-width: 500px; margin: 0 auto; border-radius: 16px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h1 style="font-size: 26px; font-weight: 800; color: #38bdf8; margin: 0;">Welcome to ${process.env.APP_NAME || 'SeenIt'}</h1>
+                </div>
+                
+                <div style="background-color: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155;">
+                    <p style="font-size: 18px; font-weight: 600; color: #f8fafc; margin-top: 0;">
+                        Hey ${username}! 👋
+                    </p>
+                    <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1;">
+                        Thanks for signing up. Please verify your email address to complete your registration and activate your account.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="${verifyUrl}" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: #ffffff; font-weight: 700; padding: 14px 28px; text-decoration: none; border-radius: 9999px; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.39);">
+                            Verify Email
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">
+                        If the button doesn't work, copy and paste this link into your browser:
+                    </p>
+                    <p style="font-size: 12px; word-break: break-all; color: #38bdf8; background-color: #0f172a; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+                        <a href="${verifyUrl}" style="color: #38bdf8; text-decoration: none;">${verifyUrl}</a>
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 24px;">
+                    <p style="font-size: 12px; color: #64748b; margin: 0;">
+                        This verification link expires in 24 hours. If you did not create an account, you can ignore this email.
+                    </p>
+                </div>
             </div>
         `
     });
@@ -65,7 +88,7 @@ exports.register = async (req, res, next) => {
         });
 
         // 5. Send verification email
-        await sendVerificationEmail(user.email, verifyToken, user._id);
+        await sendVerificationEmail(user.email, user.username, verifyToken, user._id);
 
         res.status(201).json({
             message: 'Registration successful! Please check your email to verify your account.'
