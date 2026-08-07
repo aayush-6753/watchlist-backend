@@ -13,7 +13,7 @@ const doc = {
         }
     ]
 };
-
+ 
 const outputFile = './swagger-output.json';
 // Point to your central router file (index.js inside src/routes)
 const routes = ['./src/routes/index.js'];

@@ -16,3 +16,5 @@ build/
 *.log
 .vscode/
 .DS_Store
+
+repomix-output.md
